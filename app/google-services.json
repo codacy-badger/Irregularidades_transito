@@ -1,0 +1,59 @@
+{
+  "project_info": {
+    "project_number": "502106491680",
+    "firebase_url": "https://multas-6561f.firebaseio.com",
+    "project_id": "multas-6561f",
+    "storage_bucket": "multas-6561f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:502106491680:android:533f686ad8cd92e9",
+        "android_client_info": {
+          "package_name": "com.joaoeudes7.multas"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "502106491680-p16cu3kemhoqs3q47e825isr77jsup7h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.joaoeudes7.multas",
+            "certificate_hash": "a2764163da2615c1af51f270818238bd20dce350"
+          }
+        },
+        {
+          "client_id": "502106491680-2bbf3ecnhkq94a32vgpglpj781u9osli.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "502106491680-2bbf3ecnhkq94a32vgpglpj781u9osli.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeuQFy6HAABPPmxBWlD5m79nE0ccY0ycA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "502106491680-2bbf3ecnhkq94a32vgpglpj781u9osli.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Multas</string>
+    <string name="action_settings">Configurações</string>
+
+    <string name="title_activity_login">Login</string>
+    <string name="title_activity_register">Cadastre-se</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_settings">Settings</string>
+</resources>
