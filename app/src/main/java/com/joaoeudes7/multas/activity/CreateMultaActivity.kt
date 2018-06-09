@@ -1,7 +1,6 @@
 package com.joaoeudes7.multas.activity
 
 import android.annotation.SuppressLint
-import android.app.ProgressDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -19,7 +18,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
@@ -40,7 +38,6 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
 
     lateinit var fbStorage: StorageReference
     lateinit var fbRealtimeDB: DatabaseReference
-    lateinit var fbAuth: FirebaseAuth
 
     private val PICK_IMAGE_REQUEST = 7
     private val TAKE_IMAGE_REQUEST = 77
@@ -51,8 +48,6 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_multa)
-
-        fbAuth = FirebaseAuth.getInstance()
 
         // Map
         this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -73,12 +68,8 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
     override fun onStart() {
         super.onStart()
 
-        if (fbAuth.currentUser != null) {
-            fbRealtimeDB = FirebaseDatabase.getInstance().getReference("multas")
-            fbStorage = FirebaseStorage.getInstance().getReference("multas")
-        } else {
-            startActivity(Intent(this, LoginActivity::class.java))
-        }
+        fbRealtimeDB = FirebaseDatabase.getInstance().getReference("multas")
+        fbStorage = FirebaseStorage.getInstance().getReference("multas")
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -120,11 +111,6 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         multa.carro.placa = edt_placa.text.toString()
         multa.irregulariedade = spinner.selectedItemPosition
 
-        val progressDialog = ProgressDialog(this, ProgressDialog.STYLE_SPINNER)
-        progressDialog.setCancelable(false)
-        progressDialog.setMessage("Aguarde...")
-        progressDialog.show()
-
         // Firebase
         // Storage Send Image
         fbStorage.child(UUID.randomUUID().toString()).putFile(imageUri).addOnSuccessListener { taskSnapshot ->
@@ -135,12 +121,10 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
                 val post = fbRealtimeDB.push()
                 post.setValue(multa)
                         .addOnSuccessListener {
-                            progressDialog.dismiss()
                             Toast.makeText(this, "Enviado com suncesso!", Toast.LENGTH_LONG).show()
                             startActivity(Intent(this, MainActivity::class.java))
                         }
                         .addOnFailureListener {
-                            progressDialog.dismiss()
                             Toast.makeText(this, "Falha no envio!", Toast.LENGTH_LONG).show()
                         }
             }

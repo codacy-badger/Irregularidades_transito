@@ -13,8 +13,8 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.google.firebase.database.*
 import com.joaoeudes7.multas.activity.CreateMultaActivity
-import com.joaoeudes7.multas.activity.LoginActivity
 import com.joaoeudes7.multas.adapters.MultaAdapter
+import com.joaoeudes7.multas.extraComponents.ProgressDialog.ProgressDialog
 import com.joaoeudes7.multas.model.Multa
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -70,6 +70,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getData() {
+        val progressBar = ProgressDialog(this)
+        progressBar.show()
+
         fbRealtimeDB = FirebaseDatabase.getInstance().getReference("multas")
         fbRealtimeDB.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
@@ -79,17 +82,13 @@ class MainActivity : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
                     multas.clear()
-                    dataSnapshot.children.mapIndexedNotNullTo(multas) { index, dataSnapshot -> dataSnapshot.getValue<Multa>(Multa::class.java) }
+                    dataSnapshot.children.mapIndexedNotNullTo(multas) { _, data -> data.getValue<Multa>(Multa::class.java) }
                     recyclerView.adapter = MultaAdapter(multas)
+                    progressBar.dismiss()
                 }
             }
 
         })
-    }
-
-    private fun goToLogin() {
-        val login = Intent(this@MainActivity, LoginActivity::class.java)
-        return startActivity(login)
     }
 
     private fun goToNewMulta() {
