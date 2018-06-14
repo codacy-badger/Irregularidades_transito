@@ -41,8 +41,9 @@ class ProgressDialog(context: Context, msg: String = "Carregando...", cancelable
         alertDialog = dialogBuilder.create()
     }
 
-    fun show() {
+    fun show(): ProgressDialog {
         alertDialog.show()
+        return this
     }
 
     fun dismiss() {

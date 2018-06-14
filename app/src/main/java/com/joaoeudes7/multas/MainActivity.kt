@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.google.firebase.database.*
 import com.joaoeudes7.multas.activity.CreateMultaActivity
+import com.joaoeudes7.multas.activity.DetailsMultaActivity
 import com.joaoeudes7.multas.adapters.MultaAdapter
 import com.joaoeudes7.multas.extraComponents.ProgressDialog.ProgressDialog
 import com.joaoeudes7.multas.model.Multa
@@ -22,8 +23,8 @@ import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    val multas: MutableList<Multa> = mutableListOf()
-    lateinit var fbRealtimeDB: DatabaseReference
+    val multas: ArrayList<Multa> = ArrayList()
+    private lateinit var fbRealtimeDB: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,7 +84,11 @@ class MainActivity : AppCompatActivity() {
                 if (dataSnapshot.exists()) {
                     multas.clear()
                     dataSnapshot.children.mapIndexedNotNullTo(multas) { _, data -> data.getValue<Multa>(Multa::class.java) }
-                    recyclerView.adapter = MultaAdapter(multas)
+                    if (multas.size > 0) {
+                        recyclerView.adapter = MultaAdapter(multas)
+                    }
+                    progressBar.dismiss()
+                } else {
                     progressBar.dismiss()
                 }
             }
@@ -97,7 +102,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestPermissions() {
-        val PERMISSIONS = arrayOf(
+        val permissions = arrayOf(
                 Manifest.permission.READ_CONTACTS,
                 Manifest.permission.WRITE_CONTACTS,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -106,8 +111,8 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.CAMERA)
 
-        if (!hasPermissions(PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, PERMISSIONS, 1)
+        if (!hasPermissions(permissions)) {
+            ActivityCompat.requestPermissions(this, permissions, 1)
         }
     }
 
@@ -118,5 +123,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return true
+    }
+
+    private fun goToDetails() {
+        val intentDetails = Intent(this, DetailsMultaActivity::class.java)
+        intentDetails.putExtra("multa", this.multas[0])
+        startActivityForResult(intentDetails, 1)
     }
 }

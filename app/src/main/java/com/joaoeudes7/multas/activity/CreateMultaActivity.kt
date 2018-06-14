@@ -2,6 +2,7 @@ package com.joaoeudes7.multas.activity
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -24,8 +25,10 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.joaoeudes7.multas.MainActivity
 import com.joaoeudes7.multas.R
+import com.joaoeudes7.multas.extraComponents.ProgressDialog.ProgressDialog
 import com.joaoeudes7.multas.model.Multa
 import kotlinx.android.synthetic.main.activity_create_multa.*
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
 
@@ -36,13 +39,16 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    lateinit var fbStorage: StorageReference
-    lateinit var fbRealtimeDB: DatabaseReference
+    private lateinit var fbStorage: StorageReference
+    private lateinit var fbRealtimeDB: DatabaseReference
 
     private val PICK_IMAGE_REQUEST = 7
     private val TAKE_IMAGE_REQUEST = 77
 
     private lateinit var imageUri: Uri
+    private lateinit var imageByteArray: ByteArray
+
+    private lateinit var progressDialog: ProgressDialog
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,22 +74,24 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
     override fun onStart() {
         super.onStart()
 
-        fbRealtimeDB = FirebaseDatabase.getInstance().getReference("multas")
-        fbStorage = FirebaseStorage.getInstance().getReference("multas")
+        this.fbRealtimeDB = FirebaseDatabase.getInstance().getReference("multas")
+        this.fbStorage = FirebaseStorage.getInstance().getReference("multas")
+
+        this.progressDialog = ProgressDialog(this)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data?.data != null) {
-            imageUri = data.data
-//            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uriPhoto)
+            this.imageUri = data.data
             imageView.setImageURI(imageUri)
+            this.imageByteArray = compressImage(imageUri)
         }
 
         if (requestCode == TAKE_IMAGE_REQUEST && resultCode == RESULT_OK) {
-//                val bitmap = data!!.extras.get("data") as Bitmap
             imageView.setImageURI(imageUri)
+            this.imageByteArray = compressImage(imageUri)
         }
     }
 
@@ -107,36 +115,56 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST)
     }
 
+    private fun compressImage(imageURI: Uri): ByteArray {
+        val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageURI)
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.WEBP, 60, stream)
+        val byteArray = stream.toByteArray()
+        stream.close()
+        return byteArray
+    }
+
     private fun onSubmit() {
-        multa.carro.placa = edt_placa.text.toString()
-        multa.irregulariedade = spinner.selectedItemPosition
+        this.progressDialog.show()
+
+        this.multa.carro.placa = edt_placa.text.toString()
+        this.multa.irregulariedade = spinner.selectedItemPosition
+
 
         // Firebase
-        // Storage Send Image
-        fbStorage.child(UUID.randomUUID().toString()).putFile(imageUri).addOnSuccessListener { taskSnapshot ->
+        this.sendImageToStorage(imageByteArray)
+    }
+
+    private fun sendImageToStorage(imageBytes: ByteArray) {
+        fbStorage.child(UUID.randomUUID().toString()).putBytes(imageBytes).
+                addOnSuccessListener { taskSnapshot ->
             taskSnapshot.storage.downloadUrl.addOnSuccessListener {
                 this.multa.urlThumbnail = it.toString()
 
-                // Database Send Multa
-                val post = fbRealtimeDB.push()
-                post.setValue(multa)
-                        .addOnSuccessListener {
-                            Toast.makeText(this, "Enviado com suncesso!", Toast.LENGTH_LONG).show()
-                            startActivity(Intent(this, MainActivity::class.java))
-                        }
-                        .addOnFailureListener {
-                            Toast.makeText(this, "Falha no envio!", Toast.LENGTH_LONG).show()
-                        }
+                this.sendMulta()
             }
         }
     }
 
+    private fun sendMulta() {
+        val post = fbRealtimeDB.push()
+        post.setValue(multa)
+                .addOnSuccessListener {
+                    progressDialog.dismiss()
+                    Toast.makeText(this, "Enviado com suncesso!", Toast.LENGTH_LONG).show()
+                    startActivity(Intent(this, MainActivity::class.java))
+                }
+                .addOnFailureListener {
+                    progressDialog.dismiss()
+                    Toast.makeText(this, "Falha no envio!", Toast.LENGTH_LONG).show()
+                }
+    }
 
     // Maps SDK
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap?) {
         mMap = googleMap!!
-        val zoomLevel = 18f
+        val zoomLevel = 20f
 
         mMap.uiSettings.isZoomControlsEnabled = true
         mMap.setOnMarkerClickListener(this)
@@ -148,15 +176,16 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
 
         mMap.isMyLocationEnabled = true
 
-        this.fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
-            if (location != null) {
-                println("My last location is: $location")
-                val currentLatLng = LatLng(location.latitude, location.longitude)
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, zoomLevel))
-                mMap.addMarker(MarkerOptions().position(currentLatLng).title("Local da multa"))
-                multa.local = com.joaoeudes7.multas.model.LatLng(currentLatLng.latitude, currentLatLng.longitude)
-            }
-        }
+        this.fusedLocationClient.lastLocation
+                .addOnSuccessListener(this) { location ->
+                    if (location != null) {
+                        println("My last location is: $location")
+                        val currentLatLng = LatLng(location.latitude, location.longitude)
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, zoomLevel))
+                        mMap.addMarker(MarkerOptions().position(currentLatLng).title("Local da multa"))
+                        multa.local = com.joaoeudes7.multas.model.LatLng(currentLatLng.latitude, currentLatLng.longitude)
+                    }
+                }
     }
 
     override fun onMarkerClick(p0: Marker?) = false

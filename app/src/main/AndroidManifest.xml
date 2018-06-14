@@ -44,20 +44,11 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".activity.LoginActivity"
-            android:label="@string/title_activity_login" />
-        <activity
-            android:name=".activity.RegisterActivity"
-            android:label="@string/title_activity_register" />
-
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity
-            android:name=".activity.MapsActivity"
-            android:label="@string/title_activity_maps" />
+        <activity android:name=".activity.DetailsMultaActivity" />
         <activity android:name=".activity.CreateMultaActivity" />
     </application>
 

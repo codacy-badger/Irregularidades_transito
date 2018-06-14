@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "502106491680-n2jk3mmbn1najjod1gdaj33brqqeaq25.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.joaoeudes7.multas",
+            "certificate_hash": "3a4f746cb720275797b9607208a19d243ab5f56b"
+          }
+        },
+        {
           "client_id": "502106491680-p16cu3kemhoqs3q47e825isr77jsup7h.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
