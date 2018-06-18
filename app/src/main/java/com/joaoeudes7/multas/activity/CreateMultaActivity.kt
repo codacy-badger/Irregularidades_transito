@@ -23,14 +23,18 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.joaoeudes7.multas.MainActivity
 import com.joaoeudes7.multas.R
 import com.joaoeudes7.multas.extraComponents.ProgressDialog.ProgressDialog
 import com.joaoeudes7.multas.model.Multa
 import kotlinx.android.synthetic.main.activity_create_multa.*
+import kotlinx.android.synthetic.main.content_create_multa.*
+import org.jetbrains.anko.alert
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
+import java.util.regex.Pattern
 
 class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -61,13 +65,23 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         mapFragment.getMapAsync(this@CreateMultaActivity)
 
         // Spinner
-        val inrregulariedades = Arrays.asList("Veículo estacionado em vaga de deficiente", "Veículo estacionado em vaga de idosos")
-        spinner.adapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, inrregulariedades)
+        val inrregulariedades = Arrays.asList(
+                "Farol desligado", "Transitar pelo aconstamento", "Pneus impróprios para uso",
+                "Lâmpadas/luzes queimadas", "Sem uso dos acessórios", "Transporte de criança inrregular",
+                "Estacionado em vaga proibida")
+        spinner_tipo_multa.adapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, inrregulariedades)
+        spinner_tipo_multa.prompt = "Selecione a inrregulariedade"
+
+        val portes = Arrays.asList("Alto", "Média", "Baixa")
+        spinner_porte.adapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, portes)
+        spinner_porte.prompt = "Selecione o porte do veículo"
 
         // Buttons and Actions
         btn_camera.setOnClickListener { launchCamera() }
         btn_gallery.setOnClickListener { selectByGallery() }
-        btn_submit.setOnClickListener { onSubmit() }
+        btn_submit.setOnClickListener {
+            if (isPlaceValid() && isImageValid()) { onSubmit() }
+        }
 
     }
 
@@ -86,13 +100,30 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data?.data != null) {
             this.imageUri = data.data
             imageView.setImageURI(imageUri)
-            this.imageByteArray = compressImage(imageUri)
+            doAsync {
+                val byteArray = compressImage(imageUri)
+
+                uiThread {
+                    imageByteArray = byteArray
+                }
+            }
         }
 
         if (requestCode == TAKE_IMAGE_REQUEST && resultCode == RESULT_OK) {
             imageView.setImageURI(imageUri)
-            this.imageByteArray = compressImage(imageUri)
+            doAsync {
+                val byteArray = compressImage(imageUri)
+
+                uiThread {
+                    imageByteArray = byteArray
+                }
+            }
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out)
     }
 
     private fun launchCamera() {
@@ -118,7 +149,7 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
     private fun compressImage(imageURI: Uri): ByteArray {
         val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageURI)
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.WEBP, 60, stream)
+        bitmap.compress(Bitmap.CompressFormat.WEBP, 50, stream)
         val byteArray = stream.toByteArray()
         stream.close()
         return byteArray
@@ -128,7 +159,8 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         this.progressDialog.show()
 
         this.multa.carro.placa = edt_placa.text.toString()
-        this.multa.irregulariedade = spinner.selectedItemPosition
+        this.multa.irregulariedade = spinner_tipo_multa.selectedItemPosition
+        this.multa.carro.porte = spinner_porte.selectedItemPosition
 
 
         // Firebase
@@ -148,11 +180,13 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
 
     private fun sendMulta() {
         val post = fbRealtimeDB.push()
+        this.multa.key = post.key!!
         post.setValue(multa)
                 .addOnSuccessListener {
                     progressDialog.dismiss()
                     Toast.makeText(this, "Enviado com suncesso!", Toast.LENGTH_LONG).show()
-                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                    overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
                 }
                 .addOnFailureListener {
                     progressDialog.dismiss()
@@ -164,7 +198,7 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap?) {
         mMap = googleMap!!
-        val zoomLevel = 20f
+        val zoomLevel = 16f
 
         mMap.uiSettings.isZoomControlsEnabled = true
         mMap.setOnMarkerClickListener(this)
@@ -183,11 +217,37 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
                         val currentLatLng = LatLng(location.latitude, location.longitude)
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, zoomLevel))
                         mMap.addMarker(MarkerOptions().position(currentLatLng).title("Local da multa"))
-                        multa.local = com.joaoeudes7.multas.model.LatLng(currentLatLng.latitude, currentLatLng.longitude)
+                        multa.local = com.joaoeudes7.multas.model.Local(currentLatLng.latitude, currentLatLng.longitude)
                     }
                 }
     }
 
     override fun onMarkerClick(p0: Marker?) = false
 
+
+    // Validators
+    private fun isPlaceValid(): Boolean {
+        val isValid = Pattern.compile("^\\w{3}-\\d{4}\$").matcher(edt_placa.text.toString()).matches()
+        if (!isValid) {
+            alert {
+                message = "Placa inválida!"
+                positiveButton("Ok") {}
+            }.show()
+        }
+
+        return isValid
+    }
+
+
+    private fun isImageValid(): Boolean {
+        val isValid = ::imageUri.isInitialized
+        if (!isValid) {
+            alert {
+                message = "Adicione uma imagem"
+                positiveButton("Ok") {}
+            }.show()
+        }
+
+        return isValid
+    }
 }

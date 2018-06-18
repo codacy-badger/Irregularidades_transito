@@ -5,7 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.support.design.widget.NavigationView
 import android.support.v4.app.ActivityCompat
+import android.support.v4.view.GravityCompat
+import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.Menu
@@ -13,24 +16,32 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.google.firebase.database.*
 import com.joaoeudes7.multas.activity.CreateMultaActivity
-import com.joaoeudes7.multas.activity.DetailsMultaActivity
 import com.joaoeudes7.multas.adapters.MultaAdapter
 import com.joaoeudes7.multas.extraComponents.ProgressDialog.ProgressDialog
 import com.joaoeudes7.multas.model.Multa
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.main_app_bar.*
+import kotlinx.android.synthetic.main.main_content.*
+import org.jetbrains.anko.alert
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     val multas: ArrayList<Multa> = ArrayList()
     private lateinit var fbRealtimeDB: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+
+        val toggle = ActionBarDrawerToggle(
+                this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawer_layout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        nav_view.setNavigationItemSelectedListener(this)
+
 
         // Set Recycle Layout
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -39,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         recyclerView.isDrawingCacheEnabled = true
 
         // Buttons and Actions
-        fab.setOnClickListener { goToNewMulta() }
+        btn_new_multa.setOnClickListener { goToNewMulta() }
     }
 
     override fun onStart() {
@@ -83,12 +94,13 @@ class MainActivity : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
                     multas.clear()
-                    dataSnapshot.children.mapIndexedNotNullTo(multas) { _, data -> data.getValue<Multa>(Multa::class.java) }
+                    dataSnapshot.children.mapIndexedNotNullTo(multas) { _, data -> data.getValue(Multa::class.java) as Multa }
                     if (multas.size > 0) {
                         recyclerView.adapter = MultaAdapter(multas)
                     }
                     progressBar.dismiss()
                 } else {
+                    Toast.makeText(this@MainActivity, "Falha em receber os dados",Toast.LENGTH_LONG).show()
                     progressBar.dismiss()
                 }
             }
@@ -98,7 +110,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun goToNewMulta() {
         val login = Intent(this@MainActivity, CreateMultaActivity::class.java)
-        return startActivity(login)
+        startActivity(login)
+        overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
     }
 
     private fun requestPermissions() {
@@ -125,9 +138,16 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private fun goToDetails() {
-        val intentDetails = Intent(this, DetailsMultaActivity::class.java)
-        intentDetails.putExtra("multa", this.multas[0])
-        startActivityForResult(intentDetails, 1)
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.nav_about -> {
+                alert {
+                    message = "by joaoeudes7\nEm breve mais novidades!"
+                }.show()
+            }
+        }
+
+        drawer_layout.closeDrawer(GravityCompat.START)
+        return true
     }
 }

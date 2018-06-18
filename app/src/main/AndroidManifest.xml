@@ -3,8 +3,7 @@
     package="com.joaoeudes7.multas">
 
     <uses-feature
-        android:name="android.hardware.camera"
-        android:required="true" />
+        android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -48,8 +47,13 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".activity.DetailsMultaActivity" />
-        <activity android:name=".activity.CreateMultaActivity" />
+        <activity
+            android:name="com.joaoeudes7.multas.activity.DetailsMultaActivity"
+            android:parentActivityName="com.joaoeudes7.multas.MainActivity" />
+
+        <activity
+            android:name="com.joaoeudes7.multas.activity.CreateMultaActivity"
+            android:parentActivityName="com.joaoeudes7.multas.MainActivity" />
     </application>
 
 </manifest>

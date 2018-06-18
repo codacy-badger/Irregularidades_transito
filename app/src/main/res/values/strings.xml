@@ -1,9 +1,18 @@
 <resources>
     <string name="app_name">Multas</string>
+    <string name="app_description">Ajude a encontrar as irregulariedade de trânsito na cidade</string>
+
     <string name="action_settings">Configurações</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="title_activity_login">Login</string>
     <string name="title_activity_register">Cadastre-se</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="placa_aaa_1234">Placa: AAA-1234</string>
+    <string name="imagem_para_multa">Imagem para multa</string>
+    <string name="selecionar_imagem">Selecionar imagem</string>
+    <string name="tirar_foto">Tirar Foto</string>
 </resources>

@@ -13,16 +13,16 @@ import com.joaoeudes7.multas.R
 import com.joaoeudes7.multas.activity.DetailsMultaActivity
 import com.joaoeudes7.multas.model.Multa
 import kotlinx.android.synthetic.main.row_multa.view.*
+import java.util.*
 
 
 class MultaAdapter(var multas: ArrayList<Multa>) : RecyclerView.Adapter<MultaAdapter.CustomPostViewHolder>() {
     private var context: Context? = null
 
-    private val _typeMulta = hashMapOf(
-            0 to "Estacionado em vaga de Deficiente",
-            1 to "Estacionado em vaga de Idosos"
-    )
-
+    private val irregulariedades = Arrays.asList(
+            "Farol desligado", "Transitar pelo aconstamento", "Pneus impróprios para uso",
+            "Lâmpadas/luzes queimadas", "Sem uso dos acessórios", "Transporte de criança inrregular",
+            "Estacionado em vaga proibida")
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomPostViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -40,7 +40,7 @@ class MultaAdapter(var multas: ArrayList<Multa>) : RecyclerView.Adapter<MultaAda
         val local = Geocoder(context).getFromLocation(multa.local.latitude, multa.local.longitude, 1)[0]
 
         Glide.with(holder.view).load(multa.urlThumbnail).into(holder.imageView)
-        holder.title.text = _typeMulta[multa.irregulariedade]
+        holder.title.text = irregulariedades[multa.irregulariedade]
         holder.description.text = local.getAddressLine(0)
 
         holder.card.setOnClickListener { goToDetails(context!!, multa) }
@@ -49,8 +49,9 @@ class MultaAdapter(var multas: ArrayList<Multa>) : RecyclerView.Adapter<MultaAda
 
     private fun goToDetails(context: Context, multa: Multa) {
         val intentDetails = Intent(context, DetailsMultaActivity::class.java)
-        intentDetails.putExtra("multa", multa)
+        intentDetails.putExtra("key", multa.key)
         (this.context as Activity).startActivityForResult(intentDetails, 1)
+        (this.context as Activity).overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out)
     }
 
 
@@ -59,7 +60,6 @@ class MultaAdapter(var multas: ArrayList<Multa>) : RecyclerView.Adapter<MultaAda
         val imageView = view.thumbnail!!
         var title = view.title!!
         var description = view.description!!
-//    var date = view.date
     }
 
 }
