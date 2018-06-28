@@ -47,7 +47,7 @@ class DetailsMultaActivity : AppCompatActivity(), OnMapReadyCallback {
         this.fbRealtimeDB = FirebaseDatabase.getInstance().getReference("multas")
         this.fbRealtimeDB.child(keyOfMulta).addValueEventListener(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
-                Toast.makeText(this@DetailsMultaActivity, "sorry", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@DetailsMultaActivity, "Falha!", Toast.LENGTH_LONG).show()
             }
 
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -69,8 +69,8 @@ class DetailsMultaActivity : AppCompatActivity(), OnMapReadyCallback {
     fun setDataInUI() {
         val irregulariedades = Arrays.asList(
                 "Farol desligado", "Transitar pelo aconstamento", "Pneus impróprios para uso",
-                "Lâmpadas/luzes queimadas", "Sem uso dos acessórios", "Transporte de criança inrregular",
-                "Estacionado em vaga proibida")
+                "Lâmpadas/luzes queimadas", "Sem uso dos acessórios", "Transporte de criança irregular",
+                "Estacionado em espaço proibida")
 
 
         val portes = Arrays.asList("Alto", "Média", "Baixa")

@@ -60,17 +60,17 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         setContentView(R.layout.activity_create_multa)
 
         // Map
-        this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.mapViewMulta) as SupportMapFragment
+        this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(this@CreateMultaActivity)
+        val mapFragment = mapViewMulta as SupportMapFragment
         mapFragment.getMapAsync(this@CreateMultaActivity)
 
         // Spinner
-        val inrregulariedades = Arrays.asList(
+        val irregulariedades = Arrays.asList(
                 "Farol desligado", "Transitar pelo aconstamento", "Pneus impróprios para uso",
-                "Lâmpadas/luzes queimadas", "Sem uso dos acessórios", "Transporte de criança inrregular",
-                "Estacionado em vaga proibida")
-        spinner_tipo_multa.adapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, inrregulariedades)
-        spinner_tipo_multa.prompt = "Selecione a inrregulariedade"
+                "Lâmpadas/luzes queimadas", "Sem uso dos acessórios", "Transporte de criança irregular",
+                "Estacionado em espaço proibida")
+        spinner_tipo_multa.adapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, irregulariedades)
+        spinner_tipo_multa.prompt = "Selecione a irregulariedade"
 
         val portes = Arrays.asList("Alto", "Média", "Baixa")
         spinner_porte.adapter = ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, portes)
@@ -184,7 +184,7 @@ class CreateMultaActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.O
         post.setValue(multa)
                 .addOnSuccessListener {
                     progressDialog.dismiss()
-                    Toast.makeText(this, "Enviado com suncesso!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Enviado com sucesso!", Toast.LENGTH_LONG).show()
                     finish()
                     overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
                 }

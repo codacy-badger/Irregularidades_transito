@@ -21,8 +21,8 @@ class MultaAdapter(var multas: ArrayList<Multa>) : RecyclerView.Adapter<MultaAda
 
     private val irregulariedades = Arrays.asList(
             "Farol desligado", "Transitar pelo aconstamento", "Pneus impróprios para uso",
-            "Lâmpadas/luzes queimadas", "Sem uso dos acessórios", "Transporte de criança inrregular",
-            "Estacionado em vaga proibida")
+            "Lâmpadas/luzes queimadas", "Sem uso dos acessórios", "Transporte de criança irregular",
+            "Estacionado em espaço proibida")
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomPostViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
